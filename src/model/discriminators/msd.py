@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.utils import spectral_norm, weight_norm
+from torch.nn.utils.parametrizations import spectral_norm, weight_norm
 
 SLOPE = 0.1
 
