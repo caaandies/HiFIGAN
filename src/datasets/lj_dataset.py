@@ -28,10 +28,6 @@ class LJDataset(BaseDataset):
 
     def _create_index(self, data_dir):
         index = []
-        column_names = ["ID", "Transcription", "Normalized Transcription"]
-        metadata = pd.read_csv(
-            data_dir / "metadata.csv", header=None, names=column_names, sep="|"
-        )
 
         tokenizer = FastSpeech2ConformerTokenizer.from_pretrained(
             "espnet/fastspeech2_conformer"
@@ -43,25 +39,30 @@ class LJDataset(BaseDataset):
         specs_dir = data_dir / "spectrograms"
         specs_dir.mkdir(parents=True, exist_ok=True)
 
-        texts = metadata["Normalized Transcription"].values
-        ids = metadata["ID"].values
-        for i, id in tqdm(enumerate(ids), desc="Indexing ljspeech dataset"):
-            entry = {}
+        with open(data_dir / "metadata.csv", "r") as metadata:
+            for line in tqdm(metadata, desc="Indexing ljspeech dataset"):
+                entry = {}
 
-            inputs = tokenizer(texts[i], return_tensors="pt")
-            input_ids = inputs["input_ids"]
-            output_dict = model(input_ids, return_dict=True)
-            spectrogram = output_dict["spectrogram"]
-            torch.save(spectrogram, specs_dir / id + ".pt")
-            entry["spectrogram_path"] = specs_dir / id + ".pt"
+                id, text, norm_text = line.split("|")
+                # text = text.strip()
+                # norm_text = text.strip()
 
-            entry["target_audio_path"] = data_dir / "wavs" / id + ".wav"
-            if entry["target_audio_path"].exists():
-                entry["target_audio_path"] = str(entry["target_audio_path"])
-            else:
-                entry["target_audio_path"] = None
+                with torch.no_grad():
+                    inputs = tokenizer(norm_text, return_tensors="pt")
+                    input_ids = inputs["input_ids"]
+                    output_dict = model(input_ids, return_dict=True)
+                    spectrogram = output_dict["spectrogram"]
 
-            index.append(entry)
+                torch.save(spectrogram, specs_dir / (id + ".pt"))
+                entry["spectrogram_path"] = str(specs_dir / (id + ".pt"))
+
+                entry["target_audio_path"] = data_dir / "wavs" / (id + ".wav")
+                if entry["target_audio_path"].exists():
+                    entry["target_audio_path"] = str(entry["target_audio_path"])
+                else:
+                    entry["target_audio_path"] = None
+
+                index.append(entry)
 
         write_json(index, str(self.index_path))
         return index
