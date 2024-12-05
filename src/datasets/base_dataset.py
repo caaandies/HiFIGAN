@@ -3,7 +3,6 @@ import random
 from typing import List
 
 import torch
-import torchaudio
 from torch.utils.data import Dataset
 
 logger = logging.getLogger(__name__)
@@ -21,7 +20,6 @@ class BaseDataset(Dataset):
     def __init__(
         self,
         index,
-        target_sr=22050,
         limit=None,
         shuffle_index=False,
         instance_transforms=None,
@@ -44,8 +42,6 @@ class BaseDataset(Dataset):
         index = self._shuffle_and_limit_index(index, limit, shuffle_index)
         self._index: List[dict] = index
 
-        self.target_sr = target_sr
-
         self.instance_transforms = instance_transforms
 
     def __getitem__(self, ind):
@@ -65,14 +61,9 @@ class BaseDataset(Dataset):
         """
         data_dict = self._index[ind]
         spectrogram_path = data_dict["spectrogram_path"]
-        audio_path = data_dict["target_audio_path"]
 
-        spectrogram = torch.load(spectrogram_path)
+        spectrogram = torch.load(spectrogram_path, weights_only=True)
         instance_data = {"spectrogram": spectrogram}
-
-        if audio_path is not None:
-            target_audio = self.load_audio(audio_path)
-            instance_data["target_audio"] = target_audio
 
         return instance_data
 
@@ -81,22 +72,6 @@ class BaseDataset(Dataset):
         Get length of the dataset (length of the index).
         """
         return len(self._index)
-
-    def load_audio(self, path):
-        """
-        Load audio from disk.
-
-        Args:
-            path(str): path to the audio (wav/flac/mp3).
-        Returns:
-            Audio tensor.
-        """
-        audio_tensor, sr = torchaudio.load(path)
-        audio_tensor = audio_tensor[0:1, :]  # remove all channels but the first
-        target_sr = self.target_sr
-        if sr != target_sr:
-            audio_tensor = torchaudio.functional.resample(audio_tensor, sr, target_sr)
-        return audio_tensor
 
     @staticmethod
     def _assert_index_is_valid(index):
@@ -113,9 +88,6 @@ class BaseDataset(Dataset):
             assert (
                 "spectrogram_path" in entry
             ), "Each dataset item should include field 'spectrogram_path' - path to spectrogram to generate audio from."
-            assert (
-                "target_audio_path" in entry
-            ), "Each dataset item should include field 'target_audio_path' - path to target audio file or None."
 
     @staticmethod
     def _shuffle_and_limit_index(index, limit, shuffle_index):
