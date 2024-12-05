@@ -1,4 +1,5 @@
 import torch
+from torch.nn.utils.rnn import pad_sequence
 
 
 def collate_fn(dataset_items: list[dict]):
@@ -14,12 +15,12 @@ def collate_fn(dataset_items: list[dict]):
             of the tensors.
     """
 
-    result_batch = {}
+    batch = {}
 
-    # example of collate_fn
-    result_batch["data_object"] = torch.vstack(
-        [elem["data_object"] for elem in dataset_items]
+    batch["spectrogram"] = pad_sequence(
+        [item["spectrogram"] for item in dataset_items], batch_first=True
     )
-    result_batch["labels"] = torch.tensor([elem["labels"] for elem in dataset_items])
-
-    return result_batch
+    batch["spectrogram_len"] = torch.tensor(
+        [item["spectrogram_len"] for item in dataset_items]
+    )
+    return batch
