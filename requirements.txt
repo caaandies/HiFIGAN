@@ -10,6 +10,7 @@ comet_ml
 hydra-core
 transformers==4.46.3
 g2p-en==2.1.0
+git+https://github.com/AndreevP/wvmos
 
 black
 isort
