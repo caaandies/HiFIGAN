@@ -63,7 +63,10 @@ class BaseDataset(Dataset):
         spectrogram_path = data_dict["spectrogram_path"]
 
         spectrogram = torch.load(spectrogram_path, weights_only=True)
-        instance_data = {"spectrogram": spectrogram}
+        instance_data = {
+            "spectrogram": spectrogram,
+            "spectrogram_len": spectrogram.shape[-1],
+        }
 
         return instance_data
 
