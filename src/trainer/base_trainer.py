@@ -20,8 +20,12 @@ class BaseTrainer:
         model,
         criterion,
         metrics,
-        optimizer,
-        lr_scheduler,
+        mpd_optimizer,
+        msd_optimizer,
+        gen_optimizer,
+        mpd_lr_scheduler,
+        msd_lr_scheduler,
+        gen_lr_scheduler,
         config,
         device,
         dataloaders,
@@ -29,7 +33,6 @@ class BaseTrainer:
         writer,
         epoch_len=None,
         skip_oom=True,
-        batch_transforms=None,
     ):
         """
         Args:
@@ -51,9 +54,7 @@ class BaseTrainer:
                 iteration-based training. If None, use epoch-based
                 training (len(dataloader)).
             skip_oom (bool): skip batches with the OutOfMemory error.
-            batch_transforms (dict[Callable] | None): transforms that
-                should be applied on the whole batch. Depend on the
-                tensor name.
+
         """
         self.is_train = True
 
@@ -68,9 +69,12 @@ class BaseTrainer:
 
         self.model = model
         self.criterion = criterion
-        self.optimizer = optimizer
-        self.lr_scheduler = lr_scheduler
-        self.batch_transforms = batch_transforms
+        self.mpd_optimizer = mpd_optimizer
+        self.msd_optimizer = msd_optimizer
+        self.gen_optimizer = gen_optimizer
+        self.mpd_lr_scheduler = mpd_lr_scheduler
+        self.msd_lr_scheduler = msd_lr_scheduler
+        self.gen_lr_scheduler = gen_lr_scheduler
 
         # define dataloaders
         self.train_dataloader = dataloaders["train"]
@@ -119,7 +123,9 @@ class BaseTrainer:
         self.metrics = metrics
         self.train_metrics = MetricTracker(
             *self.config.writer.loss_names,
-            "grad_norm",
+            "mpd_grad_norm",
+            "msd_grad_norm",
+            "gen_grad_norm",
             *[m.name for m in self.metrics["train"]],
             writer=self.writer,
         )
@@ -346,31 +352,6 @@ class BaseTrainer:
         """
         for tensor_for_device in self.cfg_trainer.device_tensors:
             batch[tensor_for_device] = batch[tensor_for_device].to(self.device)
-        return batch
-
-    def transform_batch(self, batch):
-        """
-        Transforms elements in batch. Like instance transform inside the
-        BaseDataset class, but for the whole batch. Improves pipeline speed,
-        especially if used with a GPU.
-
-        Each tensor in a batch undergoes its own transform defined by the key.
-
-        Args:
-            batch (dict): dict-based batch containing the data from
-                the dataloader.
-        Returns:
-            batch (dict): dict-based batch containing the data from
-                the dataloader (possibly transformed via batch transform).
-        """
-        # do batch transforms on device
-        transform_type = "train" if self.is_train else "inference"
-        transforms = self.batch_transforms.get(transform_type)
-        if transforms is not None:
-            for transform_name in transforms.keys():
-                batch[transform_name] = transforms[transform_name](
-                    batch[transform_name]
-                )
         return batch
 
     def _clip_grad_norm(self):
