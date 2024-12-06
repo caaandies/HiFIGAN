@@ -22,7 +22,6 @@ class BaseDataset(Dataset):
         index,
         limit=None,
         shuffle_index=False,
-        instance_transforms=None,
     ):
         """
         Args:
@@ -33,16 +32,11 @@ class BaseDataset(Dataset):
                 in the dataset to 'limit' elements.
             shuffle_index (bool): if True, shuffle the index. Uses python
                 random package with seed 42.
-            instance_transforms (dict[Callable] | None): transforms that
-                should be applied on the instance. Depend on the
-                tensor name.
         """
         self._assert_index_is_valid(index)
 
         index = self._shuffle_and_limit_index(index, limit, shuffle_index)
         self._index: List[dict] = index
-
-        self.instance_transforms = instance_transforms
 
     def __getitem__(self, ind):
         """
