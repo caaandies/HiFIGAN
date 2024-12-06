@@ -15,10 +15,10 @@ class GeneratorLoss(nn.Module):
         self.l_fm = l_fm
         self.l_mel = l_mel
 
-    def forward(self, real_features, real_specs, gen_outputs, gen_features, gen_specs):
+    def forward(self, real_features, real_specs, gen_outputs, gen_features, gen_wavs):
         adv_loss = self.adv_loss(gen_outputs)
         fm_loss = self.fm_loss(real_features, gen_features)
-        mel_loss = self.mel_loss(real_specs, gen_specs)
+        mel_loss = self.mel_loss(real_specs, gen_wavs)
         loss = adv_loss + self.l_fm * fm_loss + self.l_mel * mel_loss
         return {
             "loss": loss,
