@@ -27,15 +27,13 @@ class GeneratorLoss(nn.Module):
             "mel_loss": mel_loss,
         }
 
-    @staticmethod
-    def adv_loss(gen_outputs):
+    def adv_loss(self, gen_outputs):
         loss = 0
         for gen_out in gen_outputs:
             loss += torch.mean((gen_out - 1) ** 2)
         return loss
 
-    @staticmethod
-    def fm_loss(real_features, gen_features):
+    def fm_loss(self, real_features, gen_features):
         loss = 0
         for sub_real_features, sub_gen_features in zip(
             real_features, gen_features
@@ -46,8 +44,7 @@ class GeneratorLoss(nn.Module):
                 loss += torch.mean(torch.abs(real_f - gen_f))
         return loss
 
-    @staticmethod
-    def mel_loss(real_specs, gen_specs):
+    def mel_loss(self, real_specs, gen_specs):
         loss = 0
         for real_s, gen_s in zip(real_specs, gen_specs):
             loss += torch.mean(torch.abs(real_s - gen_s))

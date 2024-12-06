@@ -10,8 +10,7 @@ class DiscriminatorLoss(nn.Module):
         loss = self.adv_loss(real_outputs, gen_outputs)
         return {"loss": loss, "adv_loss": loss}
 
-    @staticmethod
-    def adv_loss(real_outputs, gen_outputs):
+    def adv_loss(self, real_outputs, gen_outputs):
         loss = 0
         for real_out, gen_out in zip(real_outputs, gen_outputs):
             loss += torch.mean((real_out - 1) ** 2) + torch.mean(gen_out**2)
