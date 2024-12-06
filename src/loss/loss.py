@@ -8,6 +8,7 @@ from src.loss.g_loss import GeneratorLoss
 class Loss(nn.Module):
     def __init__(
         self,
+        spec_transform,
         gen_l_fm=2,
         gen_l_mel=45,
     ):
@@ -15,4 +16,4 @@ class Loss(nn.Module):
 
         self.mpd_loss = DiscriminatorLoss()
         self.msd_loss = DiscriminatorLoss()
-        self.gen_loss = GeneratorLoss(gen_l_fm, gen_l_mel)
+        self.gen_loss = GeneratorLoss(spec_transform, gen_l_fm, gen_l_mel)
