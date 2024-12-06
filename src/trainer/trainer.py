@@ -31,20 +31,72 @@ class Trainer(BaseTrainer):
         metric_funcs = self.metrics["inference"]
         if self.is_train:
             metric_funcs = self.metrics["train"]
-            self.optimizer.zero_grad()
 
-        outputs = self.model(**batch)
-        batch.update(outputs)
+        gen_wavs = self.model.gen(batch["spectrogram"])
+        real_wavs = batch["wav"]
+        real_specs = batch["spectrogram"]
 
-        all_losses = self.criterion(**batch)
-        batch.update(all_losses)
+        # MPD
+        self.mpd_optimizer.zero_grad()
+        mpd_real_outputs, _ = self.model.mpd(real_wavs)
+        mpd_gen_outputs, _ = self.model.mpd(gen_wavs.detach())
+        mpd_losses = self.criterion.mpd_loss(mpd_real_outputs, mpd_gen_outputs)
+        batch["mpd_loss"] = mpd_losses["loss"]
+        batch["mpd_adv_loss"] = mpd_losses["adv_loss"]
+        if self.is_train:
+            batch["mpd_loss"].backward()
+            self._clip_grad_norm(self.model.mpd)
+            self.mpd_optimizer.step()
+            if self.mpd_lr_scheduler is not None:
+                self.mpd_lr_scheduler.step()
+
+        # MSD
+        self.msd_optimizer.zero_grad()
+        msd_real_outputs, _ = self.model.msd(real_wavs)
+        msd_gen_outputs, _ = self.model.msd(gen_wavs.detach())
+        msd_losses = self.criterion.msd_loss(msd_real_outputs, msd_gen_outputs)
+        batch["msd_loss"] = msd_losses["loss"]
+        batch["msd_adv_loss"] = msd_losses["adv_loss"]
+        if self.is_train:
+            batch["msd_loss"].backward()
+            self._clip_grad_norm(self.model.msd)
+            self.msd_optimizer.step()
+            if self.msd_lr_scheduler is not None:
+                self.msd_lr_scheduler.step()
+
+        # GEN
+        self.gen_optimizer.zero_grad()
+
+        _, mpd_real_features = self.model.mpd(real_wavs)
+        mpd_gen_outputs, mpd_gen_features = self.model.mpd(gen_wavs)
+        gen_mpd_losses = self.criterion.gen_loss(
+            mpd_real_features, real_specs, mpd_gen_outputs, mpd_gen_features, gen_wavs
+        )
+
+        _, msd_real_features = self.model.msd(real_wavs)
+        msd_gen_outputs, msd_gen_features = self.model.msd(gen_wavs)
+        gen_msd_losses = self.criterion.gen_loss(
+            msd_real_features, real_specs, msd_gen_outputs, msd_gen_features, gen_wavs
+        )
+
+        batch["gen_mpd_loss"] = gen_mpd_losses["loss"]
+        batch["gen_mpd_adv_loss"] = gen_mpd_losses["adv_loss"]
+        batch["gen_mpd_fm_loss"] = gen_mpd_losses["fm_loss"]
+        batch["gen_mpd_mel_loss"] = gen_mpd_losses["mel_loss"]
+
+        batch["gen_msd_loss"] = gen_msd_losses["loss"]
+        batch["gen_msd_adv_loss"] = gen_msd_losses["adv_loss"]
+        batch["gen_msd_fm_loss"] = gen_msd_losses["fm_loss"]
+        batch["gen_msd_mel_loss"] = gen_msd_losses["mel_loss"]
+
+        batch["gen_loss"] = gen_mpd_losses["loss"] + gen_msd_losses["loss"]
 
         if self.is_train:
-            batch["loss"].backward()  # sum of all losses is always called loss
-            self._clip_grad_norm()
-            self.optimizer.step()
-            if self.lr_scheduler is not None:
-                self.lr_scheduler.step()
+            batch["gen_loss"].backward()
+            self._clip_grad_norm(self.model.gen)
+            self.gen_optimizer.step()
+            if self.gen_lr_scheduler is not None:
+                self.gen_lr_scheduler.step()
 
         # update metrics for each loss (in case of multiple losses)
         for loss_name in self.config.writer.loss_names:
