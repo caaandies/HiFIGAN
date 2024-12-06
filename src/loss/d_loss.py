@@ -6,7 +6,7 @@ class DiscriminatorLoss(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, real_outputs, gen_outputs, **batch):
+    def forward(self, real_outputs, gen_outputs):
         loss = self.adv_loss(real_outputs, gen_outputs)
         return {"loss": loss, "adv_loss": loss}
 
