@@ -23,4 +23,11 @@ def collate_fn(dataset_items: list[dict]):
     batch["spectrogram_len"] = torch.tensor(
         [item["spectrogram_len"] for item in dataset_items]
     )
+
+    if "wav" in dataset_items[0]:
+        batch["wav"] = pad_sequence(
+            [item["wav"] for item in dataset_items], batch_first=True
+        )
+        batch["wav_len"] = torch.tensor([item["wav_len"] for item in dataset_items])
+
     return batch

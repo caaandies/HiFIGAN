@@ -54,13 +54,19 @@ class BaseDataset(Dataset):
                 (a single dataset element).
         """
         data_dict = self._index[ind]
-        spectrogram_path = data_dict["spectrogram_path"]
 
+        spectrogram_path = data_dict["spectrogram_path"]
         spectrogram = torch.load(spectrogram_path, weights_only=True)
         instance_data = {
             "spectrogram": spectrogram,
             "spectrogram_len": spectrogram.shape[-1],
         }
+
+        wav_path = data_dict["wav_path"]
+        if wav_path is not None:
+            wav = torch.load(wav_path, weights_only=True)
+            instance_data["wav"] = wav
+            instance_data["wav_len"] = wav.shape[-1]
 
         return instance_data
 
@@ -84,7 +90,11 @@ class BaseDataset(Dataset):
         for entry in index:
             assert (
                 "spectrogram_path" in entry
-            ), "Each dataset item should include field 'spectrogram_path' - path to spectrogram to generate audio from."
+            ), "Each dataset item should include field 'spectrogram_path' - path to spectrogram tensor to generate audio from."
+
+            assert (
+                "wav_path" in entry
+            ), "Each dataset item should include field 'wav_path' - path to target wav tensor or None."
 
     @staticmethod
     def _shuffle_and_limit_index(index, limit, shuffle_index):

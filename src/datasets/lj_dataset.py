@@ -36,8 +36,10 @@ class LJDataset(BaseDataset):
     def _create_index(self, data_dir):
         index = []
 
-        specs_dir = data_dir / "spectrograms"
+        specs_dir = data_dir / "spectrogram_tensors"
         specs_dir.mkdir(parents=True, exist_ok=True)
+        wavs_dir = data_dir / "wav_tensors"
+        wavs_dir.mkdir(parents=True, exist_ok=True)
 
         for audio_file in tqdm(
             (data_dir / "wavs").iterdir(), desc="Indexing LJspeeeh dataset"
@@ -45,6 +47,9 @@ class LJDataset(BaseDataset):
             entry = {}
 
             audio_tensor = self.load_audio(audio_file)
+            torch.save(audio_tensor, wavs_dir / (audio_file.stem + ".pt"))
+            entry["wav_path"] = str(wavs_dir / (audio_file.stem + ".pt"))
+
             spectrogram = self.spec_transform(audio_tensor)
             torch.save(spectrogram, specs_dir / (audio_file.stem + ".pt"))
             entry["spectrogram_path"] = str(specs_dir / (audio_file.stem + ".pt"))
