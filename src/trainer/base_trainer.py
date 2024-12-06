@@ -18,6 +18,7 @@ class BaseTrainer:
     def __init__(
         self,
         model,
+        spec_transform,
         criterion,
         metrics,
         mpd_optimizer,
@@ -68,6 +69,7 @@ class BaseTrainer:
         self.log_step = config.trainer.get("log_step", 50)
 
         self.model = model
+        self.spec_transform = spec_transform
         self.criterion = criterion
         self.mpd_optimizer = mpd_optimizer
         self.msd_optimizer = msd_optimizer
