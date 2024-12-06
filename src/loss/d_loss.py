@@ -3,12 +3,7 @@ from torch import nn
 
 
 class DiscriminatorLoss(nn.Module):
-    def __init__(
-        self,
-        l_adv,
-        l_fm,
-        l_mel,
-    ):
+    def __init__(self):
         super().__init__()
 
     def forward(self, real_outputs, gen_outputs, **batch):
