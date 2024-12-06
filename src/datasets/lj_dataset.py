@@ -12,11 +12,8 @@ class LJDataset(BaseDataset):
     def __init__(
         self,
         data_dir,
+        spec_transform,
         target_sr=22050,
-        n_fft=1024,
-        win_length=1024,
-        hop_length=256,
-        n_mels=80,
         *args,
         **kwargs,
     ):
@@ -25,13 +22,7 @@ class LJDataset(BaseDataset):
         assert data_dir.is_dir(), f"The folder {data_dir} does not exist"
 
         self.target_sr = target_sr
-        self.mel_spec_transform = torchaudio.transforms.MelSpectrogram(
-            sample_rate=target_sr,
-            n_fft=n_fft,
-            win_length=win_length,
-            hop_length=hop_length,
-            n_mels=n_mels,
-        )
+        self.spec_transform = spec_transform
 
         self.index_path = data_dir / "index.json"
 
@@ -54,7 +45,7 @@ class LJDataset(BaseDataset):
             entry = {}
 
             audio_tensor = self.load_audio(audio_file)
-            spectrogram = self.get_spectrogram(audio_tensor)
+            spectrogram = self.spec_transform(audio_tensor)
             torch.save(spectrogram, specs_dir / (audio_file.stem + ".pt"))
             entry["spectrogram_path"] = str(specs_dir / (audio_file.stem + ".pt"))
 
@@ -78,6 +69,3 @@ class LJDataset(BaseDataset):
         if sr != target_sr:
             audio_tensor = torchaudio.functional.resample(audio_tensor, sr, target_sr)
         return audio_tensor
-
-    def get_spectrogram(self, audio_tensor):
-        return self.mel_spec_transform(audio_tensor)
