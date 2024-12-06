@@ -5,11 +5,13 @@ from torch import nn
 class GeneratorLoss(nn.Module):
     def __init__(
         self,
+        spec_transform,
         l_fm,
         l_mel,
     ):
         super().__init__()
 
+        self.spec_transform = spec_transform
         self.l_fm = l_fm
         self.l_mel = l_mel
 
@@ -42,8 +44,7 @@ class GeneratorLoss(nn.Module):
                 loss += torch.mean(torch.abs(real_f - gen_f))
         return loss
 
-    def mel_loss(self, real_specs, gen_specs):
-        loss = 0
-        for real_s, gen_s in zip(real_specs, gen_specs):
-            loss += torch.mean(torch.abs(real_s - gen_s))
+    def mel_loss(self, real_specs, gen_wavs):
+        gen_specs = self.spec_transform(gen_wavs)
+        loss = torch.mean(torch.abs(real_specs - gen_specs))
         return loss
