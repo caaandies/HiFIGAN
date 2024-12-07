@@ -46,7 +46,7 @@ class Trainer(BaseTrainer):
         mpd_gen_outputs, _ = self.model.mpd(gen_wavs.detach())
         mpd_losses = self.criterion.mpd_loss(mpd_real_outputs, mpd_gen_outputs)
         batch["mpd_loss"] = mpd_losses["loss"]
-        batch["mpd_adv_loss"] = mpd_losses["adv_loss"]
+        # batch["mpd_adv_loss"] = mpd_losses["adv_loss"]
         if self.is_train:
             batch["mpd_loss"].backward()
             self._clip_grad_norm(self.model.mpd)
@@ -60,7 +60,7 @@ class Trainer(BaseTrainer):
         msd_gen_outputs, _ = self.model.msd(gen_wavs.detach())
         msd_losses = self.criterion.msd_loss(msd_real_outputs, msd_gen_outputs)
         batch["msd_loss"] = msd_losses["loss"]
-        batch["msd_adv_loss"] = msd_losses["adv_loss"]
+        # batch["msd_adv_loss"] = msd_losses["adv_loss"]
         if self.is_train:
             batch["msd_loss"].backward()
             self._clip_grad_norm(self.model.msd)
@@ -83,17 +83,22 @@ class Trainer(BaseTrainer):
             msd_real_features, real_specs, msd_gen_outputs, msd_gen_features, gen_wavs
         )
 
-        batch["gen_mpd_loss"] = gen_mpd_losses["loss"]
-        batch["gen_mpd_adv_loss"] = gen_mpd_losses["adv_loss"]
-        batch["gen_mpd_fm_loss"] = gen_mpd_losses["fm_loss"]
-        batch["gen_mpd_mel_loss"] = gen_mpd_losses["mel_loss"]
-
-        batch["gen_msd_loss"] = gen_msd_losses["loss"]
-        batch["gen_msd_adv_loss"] = gen_msd_losses["adv_loss"]
-        batch["gen_msd_fm_loss"] = gen_msd_losses["fm_loss"]
-        batch["gen_msd_mel_loss"] = gen_msd_losses["mel_loss"]
-
         batch["gen_loss"] = gen_mpd_losses["loss"] + gen_msd_losses["loss"]
+        batch["gen_adv_loss"] = gen_mpd_losses["adv_loss"] + gen_msd_losses["adv_loss"]
+        batch["gen_fm_loss"] = gen_mpd_losses["fm_loss"] + gen_msd_losses["fm_loss"]
+        batch["gen_mel_loss"] = gen_mpd_losses["mel_loss"] + gen_msd_losses["mel_loss"]
+
+        # batch["gen_mpd_loss"] = gen_mpd_losses["loss"]
+        # batch["gen_mpd_adv_loss"] = gen_mpd_losses["adv_loss"]
+        # batch["gen_mpd_fm_loss"] = gen_mpd_losses["fm_loss"]
+        # batch["gen_mpd_mel_loss"] = gen_mpd_losses["mel_loss"]
+
+        # batch["gen_msd_loss"] = gen_msd_losses["loss"]
+        # batch["gen_msd_adv_loss"] = gen_msd_losses["adv_loss"]
+        # batch["gen_msd_fm_loss"] = gen_msd_losses["fm_loss"]
+        # batch["gen_msd_mel_loss"] = gen_msd_losses["mel_loss"]
+
+        # batch["gen_loss"] = gen_mpd_losses["loss"] + gen_msd_losses["loss"]
 
         if self.is_train:
             batch["gen_loss"].backward()
