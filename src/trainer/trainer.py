@@ -1,3 +1,5 @@
+import torch
+
 from src.metrics.tracker import MetricTracker
 from src.trainer.base_trainer import BaseTrainer
 
@@ -35,6 +37,8 @@ class Trainer(BaseTrainer):
         gen_wavs = self.model.gen(batch["spectrogram"])
         real_wavs = batch["wav"]
         real_specs = batch["spectrogram"]
+
+        batch["gen_wavs"] = gen_wavs
 
         # MPD
         self.mpd_optimizer.zero_grad()
@@ -124,7 +128,20 @@ class Trainer(BaseTrainer):
         # logging scheme might be different for different partitions
         if mode == "train":  # the method is called only every self.log_step steps
             # Log Stuff
-            pass
+            self.log_audio(batch["gen_wavs"][0])
         else:
             # Log Stuff
-            pass
+            self.log_audio(batch["gen_wavs"][0])
+
+    def log_audio(self, audio: torch.Tensor):
+        audio = audio.detach()
+        audio = self._normalize_audio(audio)
+        self.writer.add_audio(
+            "generated audio",
+            audio.float(),
+            sample_rate=self.config.writer.audio_sample_rate,
+        )
+
+    def _normalize_audio(audio: torch.Tensor):
+        audio /= torch.max(torch.abs(audio))
+        return audio.cpu()
