@@ -232,12 +232,22 @@ class BaseTrainer:
             if batch_idx % self.log_step == 0:
                 self.writer.set_step((epoch - 1) * self.epoch_len + batch_idx)
                 self.logger.debug(
-                    "Train Epoch: {} {} Loss: {:.6f}".format(
-                        epoch, self._progress(batch_idx), batch["loss"].item()
+                    "Train Epoch: {} {} MPDLoss: {:.6f} MSDLoss: {:.6f} GENLoss: {:.6f}".format(
+                        epoch,
+                        self._progress(batch_idx),
+                        batch["mpd_loss"].item(),
+                        batch["msd_loss"].item(),
+                        batch["gen_loss"].item(),
                     )
                 )
                 self.writer.add_scalar(
-                    "learning rate", self.lr_scheduler.get_last_lr()[0]
+                    "mpd_learning rate", self.mpd_lr_scheduler.get_last_lr()[0]
+                )
+                self.writer.add_scalar(
+                    "msd_learning rate", self.msd_lr_scheduler.get_last_lr()[0]
+                )
+                self.writer.add_scalar(
+                    "gen_learning rate", self.gen_lr_scheduler.get_last_lr()[0]
                 )
                 self._log_scalars(self.train_metrics)
                 self._log_batch(batch_idx, batch)
