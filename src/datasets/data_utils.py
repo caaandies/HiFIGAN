@@ -31,7 +31,7 @@ def get_dataloaders(config, device, train_size=0.85):
     # dataloaders init
     dataloaders = {}
 
-    for dataset_partition in config.datasets.keys():
+    for dataset_partition in datasets.keys():
         dataset = datasets[dataset_partition]
 
         assert config.dataloader.batch_size <= len(dataset), (
