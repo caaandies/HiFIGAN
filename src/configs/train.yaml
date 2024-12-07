@@ -37,9 +37,9 @@ loss_function:
   gen_l_fm: 2
   gen_l_mel: 45
 spec_transform:
-  _target_: src.transform.MelSpectrogram
+  _target_: src.transforms.MelSpectrogram
   config:
-    _target_: src.transform.MelSpectrogramConfig
+    _target_: src.transforms.MelSpectrogramConfig
     sr: 22050
     win_length: 1024
     hop_length: 256
