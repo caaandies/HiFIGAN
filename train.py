@@ -7,12 +7,13 @@ from omegaconf import OmegaConf
 
 from src.datasets.data_utils import get_dataloaders
 from src.trainer import Trainer
+from src.transforms import MelSpectrogram, MelSpectrogramConfig
 from src.utils.init_utils import set_random_seed, setup_saving_and_logging
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
-@hydra.main(version_base=None, config_path="src/configs", config_name="baseline")
+@hydra.main(version_base=None, config_path="src/configs", config_name="train")
 def main(config):
     """
     Main script for training. Instantiates the model, optimizer, scheduler,
@@ -33,9 +34,11 @@ def main(config):
     else:
         device = config.trainer.device
 
+    spec_transform = instantiate(config.spec_transform)
+
     # setup data_loader instances
     # batch_transforms should be put on device
-    dataloaders, batch_transforms = get_dataloaders(config, device)
+    dataloaders = get_dataloaders(config, device)
 
     # build model architecture, then print to console
     model = instantiate(config.model).to(device)
@@ -46,9 +49,18 @@ def main(config):
     metrics = instantiate(config.metrics)
 
     # build optimizer, learning rate scheduler
-    trainable_params = filter(lambda p: p.requires_grad, model.parameters())
-    optimizer = instantiate(config.optimizer, params=trainable_params)
-    lr_scheduler = instantiate(config.lr_scheduler, optimizer=optimizer)
+    trainable_mpd_params = filter(lambda p: p.requires_grad, model.mpd.parameters())
+    mpd_optimizer = instantiate(config.mpd_optimizer, params=trainable_mpd_params)
+
+    trainable_msd_params = filter(lambda p: p.requires_grad, model.msd.parameters())
+    msd_optimizer = instantiate(config.msd_optimizer, params=trainable_msd_params)
+
+    trainable_gen_params = filter(lambda p: p.requires_grad, model.gen.parameters())
+    gen_optimizer = instantiate(config.gen_optimizer, params=trainable_gen_params)
+
+    mpd_lr_scheduler = instantiate(config.mpd_lr_scheduler, optimizer=mpd_optimizer)
+    msd_lr_scheduler = instantiate(config.msd_lr_scheduler, optimizer=msd_optimizer)
+    gen_lr_scheduler = instantiate(config.gen_lr_scheduler, optimizer=gen_optimizer)
 
     # epoch_len = number of iterations for iteration-based training
     # epoch_len = None or len(dataloader) for epoch-based training
@@ -56,17 +68,21 @@ def main(config):
 
     trainer = Trainer(
         model=model,
+        spec_transform=spec_transform,
         criterion=loss_function,
         metrics=metrics,
-        optimizer=optimizer,
-        lr_scheduler=lr_scheduler,
+        mpd_optimizer=mpd_optimizer,
+        msd_optimizer=msd_optimizer,
+        gen_optimizer=gen_optimizer,
+        mpd_lr_scheduler=mpd_lr_scheduler,
+        msd_lr_scheduler=msd_lr_scheduler,
+        gen_lr_scheduler=gen_lr_scheduler,
         config=config,
         device=device,
         dataloaders=dataloaders,
-        epoch_len=epoch_len,
         logger=logger,
         writer=writer,
-        batch_transforms=batch_transforms,
+        epoch_len=epoch_len,
         skip_oom=config.trainer.get("skip_oom", True),
     )
 
