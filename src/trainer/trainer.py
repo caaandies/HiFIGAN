@@ -35,6 +35,7 @@ class Trainer(BaseTrainer):
             metric_funcs = self.metrics["train"]
 
         gen_wavs = self.model.gen(batch["spectrogram"])
+        gen_specs = self.spec_transform(gen_wavs)
         real_wavs = batch["wav"]
         real_specs = batch["spectrogram"]
 
@@ -74,13 +75,13 @@ class Trainer(BaseTrainer):
         _, mpd_real_features = self.model.mpd(real_wavs)
         mpd_gen_outputs, mpd_gen_features = self.model.mpd(gen_wavs)
         gen_mpd_losses = self.criterion.gen_loss(
-            mpd_real_features, real_specs, mpd_gen_outputs, mpd_gen_features, gen_wavs
+            mpd_real_features, real_specs, mpd_gen_outputs, mpd_gen_features, gen_specs
         )
 
         _, msd_real_features = self.model.msd(real_wavs)
         msd_gen_outputs, msd_gen_features = self.model.msd(gen_wavs)
         gen_msd_losses = self.criterion.gen_loss(
-            msd_real_features, real_specs, msd_gen_outputs, msd_gen_features, gen_wavs
+            msd_real_features, real_specs, msd_gen_outputs, msd_gen_features, gen_specs
         )
 
         batch["gen_loss"] = gen_mpd_losses["loss"] + gen_msd_losses["loss"]
