@@ -19,7 +19,7 @@ def inf_loop(dataloader):
         yield from loader
 
 
-def get_dataloaders(config, device, train_size):
+def get_dataloaders(config, device, train_size=0.85):
     # dataset partitions init
     dataset = instantiate(config.datasets)  # instance transforms are defined inside
 
