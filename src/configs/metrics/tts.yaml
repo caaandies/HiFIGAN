@@ -1,0 +1,7 @@
+device: "auto"
+train: null
+inference:
+    - _target_: src.metrics.MOS
+      sr: 22050
+      target_sr: 16000
+      name: "neural-MOS"

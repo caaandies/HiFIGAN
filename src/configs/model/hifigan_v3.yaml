@@ -1,0 +1,12 @@
+_target_: src.model.HiFIGAN
+mpd_config:
+  _target_: src.model.discriminators.MPD
+msd_config:
+  _target_: src.model.discriminators.MSD
+gen_config:
+  _target_: src.model.generator.Generator
+  in_channels: 80
+  hidden_dim: 256
+  upsample_kernels: [16, 16, 8]
+  mrf_kernels: [3, 5, 7]
+  mrf_dilation_rates: [[[1], [2]], [[2], [6]], [[3], [12]]]

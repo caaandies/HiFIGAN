@@ -1,0 +1,5 @@
+_target_: src.datasets.LJDataset
+data_dir: "data/LJSpeech-1.1"
+target_sr: 22050
+limit: None
+shuffle_index: False
