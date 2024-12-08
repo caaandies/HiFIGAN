@@ -33,6 +33,8 @@ class Trainer(BaseTrainer):
         metric_funcs = self.metrics["inference"]
         if self.is_train:
             metric_funcs = self.metrics["train"]
+        if metric_funcs is None:
+            metric_funcs = []
 
         gen_wavs = self.model.gen(batch["spectrogram"])
         gen_specs = self.spec_transform(gen_wavs)
@@ -148,6 +150,6 @@ class Trainer(BaseTrainer):
             sample_rate=self.config.writer.audio_sample_rate,
         )
 
-    def _normalize_audio(audio: torch.Tensor):
+    def _normalize_audio(self, audio: torch.Tensor):
         audio /= torch.max(torch.abs(audio))
         return audio.cpu()

@@ -233,7 +233,15 @@ class BaseTrainer:
                 else:
                     raise e
 
-            self.train_metrics.update("grad_norm", self._get_grad_norm())
+            self.train_metrics.update(
+                "mpd_grad_norm", self._get_grad_norm(self.model.mpd)
+            )
+            self.train_metrics.update(
+                "msd_grad_norm", self._get_grad_norm(self.model.msd)
+            )
+            self.train_metrics.update(
+                "gen_grad_norm", self._get_grad_norm(self.model.gen)
+            )
 
             # log current results
             if batch_idx % self.log_step == 0:
@@ -384,7 +392,7 @@ class BaseTrainer:
             )
 
     @torch.no_grad()
-    def _get_grad_norm(self, norm_type=2):
+    def _get_grad_norm(self, module, norm_type=2):
         """
         Calculates the gradient norm for logging.
 
@@ -393,7 +401,7 @@ class BaseTrainer:
         Returns:
             total_norm (float): the calculated norm.
         """
-        parameters = self.model.parameters()
+        parameters = module.parameters()
         if isinstance(parameters, torch.Tensor):
             parameters = [parameters]
         parameters = [p for p in parameters if p.grad is not None]
