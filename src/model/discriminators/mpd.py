@@ -67,15 +67,14 @@ class MPDSubDiscriminator(nn.Module):
             ]
         )
 
-    def forward(self, x):  # B * 1 * T
+    def forward(self, x):  # B * T
         batch_size = x.shape[0]
-        channels = x.shape[1]
-        duration = x.shape[2]
+        duration = x.shape[1]
         if duration % self.period != 0:
             x = F.pad(x, (0, self.period - duration % self.period))
-        duration = x.shape[2]
+        duration = x.shape[1]
         x = x.view(
-            batch_size, channels, duration // self.period, self.period
+            batch_size, 1, duration // self.period, self.period
         )  # B * 1 * (T / p) * p
 
         feature_maps = []

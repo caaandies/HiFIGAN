@@ -111,7 +111,8 @@ class MSD(nn.Module):
             ]
         )
 
-    def forward(self, x):  # B * 1 * T
+    def forward(self, x):
+        x = x.unsqueeze(1)  # B * 1 * T
         feature_maps = []
         outputs = []
         for i in range(len(self.subs)):

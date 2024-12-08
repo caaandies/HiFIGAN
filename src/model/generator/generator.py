@@ -90,4 +90,4 @@ class Generator(nn.Module):
         x = F.leaky_relu(x, SLOPE)
         x = self.conv_out(x)
         x = F.tanh(x)
-        return x
+        return x.squeeze(1)
