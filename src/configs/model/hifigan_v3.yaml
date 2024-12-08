@@ -1,9 +1,10 @@
 _target_: src.model.HiFIGAN
-mpd_config:
+mpd:
   _target_: src.model.discriminators.MPD
-msd_config:
+  periods: [2, 3, 5, 7, 11]
+msd:
   _target_: src.model.discriminators.MSD
-gen_config:
+gen:
   _target_: src.model.generator.Generator
   in_channels: 80
   hidden_dim: 256

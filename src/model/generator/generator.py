@@ -75,8 +75,8 @@ class Generator(nn.Module):
             modules.append(
                 MRF(
                     channels=hidden_dim // (2 ** (i + 1)),
-                    kernel_sizes=mrf_kernels[i],
-                    dilation_rates=mrf_dilation_rates[i],
+                    kernel_sizes=mrf_kernels,
+                    dilation_rates=mrf_dilation_rates,
                 )
             )
 
