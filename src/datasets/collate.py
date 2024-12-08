@@ -1,6 +1,8 @@
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
+from src.transforms.spec_transform import MelSpectrogramConfig
+
 
 def collate_fn(dataset_items: list[dict]):
     """
@@ -18,7 +20,9 @@ def collate_fn(dataset_items: list[dict]):
     batch = {}
 
     batch["spectrogram"] = pad_sequence(
-        [item["spectrogram"] for item in dataset_items], batch_first=True
+        [item["spectrogram"] for item in dataset_items],
+        batch_first=True,
+        padding_value=MelSpectrogramConfig.pad_value,
     )
     batch["spectrogram_len"] = torch.tensor(
         [item["spectrogram_len"] for item in dataset_items]
