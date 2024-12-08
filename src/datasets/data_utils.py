@@ -27,7 +27,7 @@ def get_dataloaders(config, device, train_size=0.85):
     val_size = len(dataset) - train_size
 
     datasets = {}
-    datasets["train"], dataset["val"] = random_split(dataset, [train_size, val_size])
+    datasets["train"], datasets["val"] = random_split(dataset, [train_size, val_size])
     # dataloaders init
     dataloaders = {}
 
