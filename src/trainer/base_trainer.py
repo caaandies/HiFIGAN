@@ -123,17 +123,24 @@ class BaseTrainer:
 
         # define metrics
         self.metrics = metrics
+
+        additional_train_metrics = []
+        if self.metrics["train"] is not None:
+            additional_train_metrics = [m.name for m in self.metrics["train"]]
         self.train_metrics = MetricTracker(
             *self.config.writer.loss_names,
             "mpd_grad_norm",
             "msd_grad_norm",
             "gen_grad_norm",
-            *[m.name for m in self.metrics["train"]],
+            *additional_train_metrics,
             writer=self.writer,
         )
+        additional_eval_metrics = []
+        if self.metrics["inference"] is not None:
+            additional_eval_metrics = [m.name for m in self.metrics["inference"]]
         self.evaluation_metrics = MetricTracker(
             *self.config.writer.loss_names,
-            *[m.name for m in self.metrics["inference"]],
+            *additional_eval_metrics,
             writer=self.writer,
         )
 
