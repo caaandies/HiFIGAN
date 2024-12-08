@@ -1,6 +1,8 @@
 import torch
 from torch import nn
 
+from src.loss.pad_tensors import pad_tensors_to_match
+
 
 class DiscriminatorLoss(nn.Module):
     def __init__(self):
@@ -13,5 +15,6 @@ class DiscriminatorLoss(nn.Module):
     def adv_loss(self, real_outputs, gen_outputs):
         loss = 0
         for real_out, gen_out in zip(real_outputs, gen_outputs):
-            loss += torch.mean((real_out - 1) ** 2) + torch.mean(gen_out**2)
+            p_real_out, p_gen_out = pad_tensors_to_match(real_out, gen_out)
+            loss += torch.mean((p_real_out - 1) ** 2) + torch.mean(p_gen_out**2)
         return loss

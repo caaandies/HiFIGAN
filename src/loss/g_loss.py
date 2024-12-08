@@ -1,6 +1,8 @@
 import torch
 from torch import nn
 
+from src.loss.pad_tensors import pad_tensors_to_match
+
 
 class GeneratorLoss(nn.Module):
     def __init__(
@@ -39,9 +41,11 @@ class GeneratorLoss(nn.Module):
             for real_f, gen_f in zip(
                 sub_real_features, sub_gen_features
             ):  # levels in submodule
-                loss += torch.mean(torch.abs(real_f - gen_f))
+                p_real_f, p_gen_f = pad_tensors_to_match(real_f, gen_f)
+                loss += torch.mean(torch.abs(p_real_f - p_gen_f))
         return loss
 
     def mel_loss(self, real_specs, gen_specs):
+        p_real_specs, p_gen_specs = pad_tensors_to_match(real_specs, gen_specs)
         loss = torch.mean(torch.abs(real_specs - gen_specs))
         return loss
