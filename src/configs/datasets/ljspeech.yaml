@@ -5,5 +5,5 @@ spec_transform:
   config:
     _target_: src.transforms.MelSpectrogramConfig
 target_sr: 22050
-limit: None
+limit: null
 shuffle_index: False
