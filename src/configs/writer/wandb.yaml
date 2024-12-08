@@ -1,8 +1,9 @@
 _target_: src.logger.WandBWriter
 project_name: "HiFiGAN"
 entity: null
-run_name: "testing"
+run_name: "train"
 mode: "online"
 loss_names: ["mpd_loss", "msd_loss", "gen_loss", "gen_adv_loss",  "gen_fm_loss", "gen_mel_loss"] # which losses to log (useful for multi-loss tasks, s.a. GANs)
 log_checkpoints: False # set to True if you want to log save_dir with checkpoints to W&B
 id_length: 8 # length of the run_id
+audio_sample_rate: 22050
