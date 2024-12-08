@@ -58,7 +58,9 @@ class Generator(nn.Module):
     ):
         super().__init__()
         self.conv_in = nn.Conv1d(in_channels, hidden_dim, kernel_size=7)
-        self.conv_out = nn.Conv1d(hidden_dim, 1, kernel_size=7)
+
+        conv_out_channels = hidden_dim // (2 ** len(upsample_kernels))
+        self.conv_out = nn.Conv1d(conv_out_channels, 1, kernel_size=7)
 
         modules = []
         for i in range(len(upsample_kernels)):
