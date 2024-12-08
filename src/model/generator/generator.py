@@ -4,10 +4,6 @@ import torch.nn.functional as F
 SLOPE = 0.1
 
 
-def calc_padding_with_dilation(kernel_size, dilation=1):
-    return (kernel_size * dilation - dilation) // 2
-
-
 class ResBlock(nn.Module):
     def __init__(self, channels, kernel_size, dilation_rates):
         super().__init__()
@@ -21,9 +17,7 @@ class ResBlock(nn.Module):
                         out_channels=channels,
                         kernel_size=kernel_size,
                         dilation=dilation_rates[i][j],
-                        padding=calc_padding_with_dilation(
-                            kernel_size, dilation_rates[i][j]
-                        ),
+                        padding="same",
                     )
                 )
                 modules.append(nn.LeakyReLU(SLOPE))
@@ -57,10 +51,10 @@ class Generator(nn.Module):
         self, in_channels, hidden_dim, upsample_kernels, mrf_kernels, mrf_dilation_rates
     ):
         super().__init__()
-        self.conv_in = nn.Conv1d(in_channels, hidden_dim, kernel_size=7)
+        self.conv_in = nn.Conv1d(in_channels, hidden_dim, kernel_size=7, padding=3)
 
         conv_out_channels = hidden_dim // (2 ** len(upsample_kernels))
-        self.conv_out = nn.Conv1d(conv_out_channels, 1, kernel_size=7)
+        self.conv_out = nn.Conv1d(conv_out_channels, 1, kernel_size=7, padding=3)
 
         modules = []
         for i in range(len(upsample_kernels)):
