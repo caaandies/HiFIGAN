@@ -20,18 +20,14 @@ def collate_fn(dataset_items: list[dict]):
     batch = {}
 
     batch["spectrogram"] = pad_sequence(
-        [item["spectrogram"] for item in dataset_items],
-        batch_first=True,
+        [item["spectrogram"].squeeze(0).transpose(0, 1) for item in dataset_items],
         padding_value=MelSpectrogramConfig.pad_value,
-    )
-    batch["spectrogram_len"] = torch.tensor(
-        [item["spectrogram_len"] for item in dataset_items]
-    )
+        batch_first=True,
+    ).transpose(1, 2)
 
     if "wav" in dataset_items[0]:
         batch["wav"] = pad_sequence(
-            [item["wav"] for item in dataset_items], batch_first=True
+            [item["wav"].squeeze(0) for item in dataset_items], batch_first=True
         )
-        batch["wav_len"] = torch.tensor([item["wav_len"] for item in dataset_items])
 
     return batch
