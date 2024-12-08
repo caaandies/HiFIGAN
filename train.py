@@ -34,15 +34,13 @@ def main(config):
     else:
         device = config.trainer.device
 
-    spec_transform = instantiate(config.spec_transform)
-
     # setup data_loader instances
     # batch_transforms should be put on device
     dataloaders = get_dataloaders(config, device)
 
     # build model architecture, then print to console
     model = instantiate(config.model).to(device)
-    logger.info(model)
+    # logger.info(model)
 
     # get function handles of loss and metrics
     loss_function = instantiate(config.loss_function).to(device)
@@ -65,6 +63,8 @@ def main(config):
     # epoch_len = number of iterations for iteration-based training
     # epoch_len = None or len(dataloader) for epoch-based training
     epoch_len = config.trainer.get("epoch_len")
+
+    spec_transform = instantiate(config.spec_transform).to(device)
 
     trainer = Trainer(
         model=model,
