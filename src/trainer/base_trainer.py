@@ -373,14 +373,14 @@ class BaseTrainer:
             batch[tensor_for_device] = batch[tensor_for_device].to(self.device)
         return batch
 
-    def _clip_grad_norm(self):
+    def _clip_grad_norm(self, module):
         """
         Clips the gradient norm by the value defined in
         config.trainer.max_grad_norm
         """
         if self.config["trainer"].get("max_grad_norm", None) is not None:
             clip_grad_norm_(
-                self.model.parameters(), self.config["trainer"]["max_grad_norm"]
+                module.parameters(), self.config["trainer"]["max_grad_norm"]
             )
 
     @torch.no_grad()
